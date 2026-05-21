@@ -156,7 +156,7 @@ Clone and point the extension at the local static files:
 ```bash
 git clone https://github.com/deflating/tau.git
 cd tau
-TAU_STATIC_DIR=$(pwd)/public pi
+TAU_STATIC_DIR=/Users/ShixinGuo/code/pi-web-ui/public pi
 ```
 
 Edit the files in `public/` — refresh the browser to see changes.

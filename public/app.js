@@ -11,6 +11,7 @@ import { SessionSidebar } from './session-sidebar.js';
 import { themes, applyTheme, getCurrentTheme } from './themes.js';
 import { FileBrowser } from './file-browser.js';
 import { Launcher } from './launcher.js';
+import { FolderPicker } from './folder-picker.js';
 
 
 // Initialize components
@@ -1080,6 +1081,11 @@ async function handleNewProjectChat(project) {
   messageRenderer.renderWelcome();
   sidebar.clearActive();
 
+  // New project chat should always be writable.
+  // In mirror mode we might have been viewing a historical read-only session.
+  viewingActiveSession = true;
+  updateMirrorInputState();
+
   if (isMobile()) {
     sidebarEl.classList.add('collapsed');
     sidebarOverlay.classList.remove('visible');
@@ -1904,6 +1910,32 @@ function hideLauncher() {
 // Make the tau icon in sidebar switch back to chat
 document.querySelector('.mode-link:first-child')?.addEventListener('click', () => {
   hideLauncher();
+});
+
+// ═══════════════════════════════════════
+// Open Folder as workspace
+// ═══════════════════════════════════════
+
+const folderPicker = new FolderPicker();
+document.getElementById('open-folder-btn').addEventListener('click', () => {
+  folderPicker.open(async (selectedPath) => {
+    try {
+      const res = await fetch('/api/workspace/open', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: selectedPath }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        messageRenderer.renderSystemMessage(`Opening workspace: ${data.path}\nA new terminal window with Pi has been launched. It will appear in the sidebar once active.`);
+        setTimeout(() => sidebar.loadSessions(), 3000);
+      } else {
+        messageRenderer.renderError(`Failed to open folder: ${data.error || 'Unknown error'}`);
+      }
+    } catch (e) {
+      messageRenderer.renderError(`Failed to open folder: ${e.message}`);
+    }
+  });
 });
 
 wsClient.connect();

@@ -562,7 +562,7 @@ body {
   font-size: 11px;
   font-weight: 700;
   color: var(--accent-text);
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.06em;
   cursor: pointer;
   user-select: none;
@@ -3439,4 +3439,195 @@ body.hide-thinking .thinking-block { display: none !important; }
   padding: 2px 6px;
   border-radius: var(--radius-xs);
   font-size: 11px;
+}
+
+/* ═══════════════════════════════════════
+   Folder Picker Modal
+   ═══════════════════════════════════════ */
+
+.folder-picker-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 1100;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.folder-picker {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--bg-frosted);
+  backdrop-filter: blur(var(--blur-heavy)) saturate(1.6);
+  -webkit-backdrop-filter: blur(var(--blur-heavy)) saturate(1.6);
+  border: 1px solid var(--border-hover);
+  border-radius: var(--radius-lg);
+  width: 480px;
+  max-width: 92vw;
+  max-height: 520px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-lg), var(--shadow-inset);
+  animation: sheetIn 0.2s var(--ease);
+  z-index: 1101;
+  overflow: hidden;
+}
+
+.folder-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.folder-picker-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.folder-picker-path-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.folder-picker-path-input {
+  flex: 1;
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--text);
+  font-family: monospace;
+  outline: none;
+  transition: border-color var(--duration) var(--ease);
+}
+
+.folder-picker-path-input:focus {
+  border-color: var(--accent);
+}
+
+.folder-picker-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px;
+  min-height: 0;
+}
+
+.folder-picker-loading {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+.folder-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--duration) var(--ease);
+}
+
+.folder-picker-item:hover {
+  background: var(--bg-glass);
+}
+
+.folder-picker-item.selected {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.folder-picker-item-icon {
+  color: var(--accent-text);
+  flex-shrink: 0;
+}
+
+.folder-picker-item-name {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folder-picker-item-chevron {
+  color: var(--text-dim);
+  opacity: 0;
+  transition: opacity var(--duration) var(--ease);
+}
+
+.folder-picker-item:hover .folder-picker-item-chevron {
+  opacity: 1;
+}
+
+.folder-picker-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--border);
+}
+
+.folder-picker-selected-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-family: monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.folder-picker-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.folder-picker-cancel,
+.folder-picker-open {
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  transition: all var(--duration) var(--ease);
+}
+
+.folder-picker-cancel {
+  background: var(--bg-glass);
+  color: var(--text);
+}
+
+.folder-picker-cancel:hover {
+  background: var(--bg-hover);
+}
+
+.folder-picker-open {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+
+.folder-picker-open:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.folder-picker-open:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }

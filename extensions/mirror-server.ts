@@ -1034,6 +1034,48 @@ img{border-radius:12px}a{color:#b87a5c;font-size:18px;margin-top:16px}p{color:rg
       return;
     }
 
+    if (urlPath === "/api/workspace/open" && req.method === "POST") {
+      console.log("[Mirror] Received workspace open request");
+      let body = "";
+      req.on("data", (chunk: Buffer) => { body += chunk.toString(); });
+      req.on("end", () => {
+        try {
+          const { path: workspacePath } = JSON.parse(body);
+          if (!workspacePath || typeof workspacePath !== "string") {
+            res.writeHead(400, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ error: "path required" }));
+            return;
+          }
+          const resolved = workspacePath.startsWith("~")
+            ? path.join(process.env.HOME || "", workspacePath.slice(1))
+            : workspacePath;
+          if (!fs.existsSync(resolved) || !fs.statSync(resolved).isDirectory()) {
+            res.writeHead(400, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ error: `Directory not found: ${resolved}` }));
+            return;
+          }
+          // Open a new terminal window running pi in the selected directory
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          // @ts-ignore
+          const { execSync } = require("node:child_process");
+          const escaped = resolved.replace(/'/g, "'\\''");
+          try {
+            execSync(`osascript -e 'tell app "Terminal" to do script "cd '"'"'${escaped}'"'"' && pi"'`);
+          } catch {
+            try {
+              execSync(`osascript -e 'tell app "iTerm2" to create window with default profile command "cd '"'"'${escaped}'"'"' && pi"'`);
+            } catch { /* no terminal app available */ }
+          }
+          res.writeHead(200, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ ok: true, path: resolved }));
+        } catch (e: any) {
+          res.writeHead(500, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ error: e.message }));
+        }
+      });
+      return;
+    }
+
     // Memoryd check
     res.writeHead(404, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ error: "Not found" }));
@@ -1173,7 +1215,17 @@ img{border-radius:12px}a{color:#b87a5c;font-size:18px;margin-top:16px}p{color:rg
         sessions.sort((a, b) => b.mtime - a.mtime);
 
         if (sessions.length > 0) {
-          projects.push({ path: decodedPath, dirName: dir.name, sessions });
+          // Directory-name decoding is lossy for paths containing "-" (e.g. "pi-mono").
+          // Prefer the real cwd recorded in session headers when available.
+          const cwdCounts = new Map<string, number>();
+          for (const s of sessions) {
+            if (!s.cwd) continue;
+            cwdCounts.set(s.cwd, (cwdCounts.get(s.cwd) || 0) + 1);
+          }
+          const inferredPath = Array.from(cwdCounts.entries())
+            .sort((a, b) => b[1] - a[1])[0]?.[0] || decodedPath;
+
+          projects.push({ path: inferredPath, dirName: dir.name, sessions });
         }
       }
 
