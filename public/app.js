@@ -24,7 +24,8 @@ const dialogHandler = new DialogHandler(document.getElementById('dialog-containe
 // Session sidebar
 const sidebar = new SessionSidebar(
   document.getElementById('session-list'),
-  handleSessionSelect
+  handleSessionSelect,
+  handleNewProjectChat
 );
 
 // UI elements
@@ -1044,6 +1045,41 @@ async function newSession() {
   updateTokenUsage();
   await switchSession(null);
   sidebar.clearActive();
+  if (isMobile()) {
+    sidebarEl.classList.add('collapsed');
+    sidebarOverlay.classList.remove('visible');
+  }
+  if (!isMobile()) messageInput.focus();
+}
+
+async function handleNewProjectChat(project) {
+  sessionTotalCost = 0;
+  lastInputTokens = 0;
+  updateCostDisplay();
+  updateTokenUsage();
+
+  try {
+    const res = await fetch('/api/sessions/switch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionFile: null, cwd: project.path }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      messageRenderer.renderError(`Failed to start new chat: ${err.error}`);
+      return;
+    }
+  } catch (e) {
+    messageRenderer.renderError('Failed to start new chat');
+    return;
+  }
+
+  state.reset();
+  messageRenderer.clear();
+  toolCardRenderer.clear();
+  messageRenderer.renderWelcome();
+  sidebar.clearActive();
+
   if (isMobile()) {
     sidebarEl.classList.add('collapsed');
     sidebarOverlay.classList.remove('visible');

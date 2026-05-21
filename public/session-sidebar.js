@@ -3,9 +3,10 @@
  */
 
 export class SessionSidebar {
-  constructor(container, onSessionSelect) {
+  constructor(container, onSessionSelect, onNewChat) {
     this.container = container;
     this.onSessionSelect = onSessionSelect;
+    this.onNewChat = onNewChat;
     this.activeSessionFile = null;
     this.projects = [];
     this.collapsedProjects = new Set();
@@ -392,9 +393,18 @@ export class SessionSidebar {
 
       header.innerHTML = `
         <span class="chevron">▼</span>
-        <span title="${this.escapeHtml(project.path)}">${this.escapeHtml(shortPath)}</span>
+        <span class="project-name" title="${this.escapeHtml(project.path)}">${this.escapeHtml(shortPath)}</span>
         <span class="project-count">${project.sessions.length}</span>
+        <button class="project-new-chat-btn" title="New chat in ${this.escapeHtml(shortPath)}" aria-label="New chat in ${this.escapeHtml(shortPath)}">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
       `;
+
+      const newChatBtn = header.querySelector('.project-new-chat-btn');
+      newChatBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (this.onNewChat) this.onNewChat(project);
+      });
 
       header.addEventListener('click', () => {
         if (this.collapsedProjects.has(project.dirName)) {

@@ -585,10 +585,39 @@ body {
 .project-header.collapsed .chevron { transform: rotate(-90deg); }
 
 .project-count {
-  margin-left: auto;
   font-weight: 600;
   font-size: 10px;
   color: var(--text-dim);
+}
+
+.project-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-new-chat-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  color: var(--text-dim);
+  cursor: pointer;
+  opacity: 1;
+  transition: background var(--duration) var(--ease), color var(--duration) var(--ease);
+  flex-shrink: 0;
+}
+
+.project-new-chat-btn:hover {
+  background: var(--accent);
+  color: var(--bg);
 }
 
 .project-sessions {
