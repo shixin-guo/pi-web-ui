@@ -47,6 +47,9 @@
     stopInstance: (port) =>
       invoke('cmd_stop_instance', { port: port ?? currentPort() }),
 
+    getPiVersion: () =>
+      invoke('cmd_get_pi_version'),
+
     currentPort,
   };
 

@@ -1573,6 +1573,17 @@ body {
   border-color: var(--border-hover);
 }
 
+.settings-static-value {
+  max-width: 56%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+  color: var(--text-dim);
+  font-size: 12px;
+  font-family: 'SF Mono', 'Menlo', 'Monaco', monospace;
+}
+
 .settings-input {
   padding: 5px 10px;
   background: var(--bg-glass);
@@ -3701,9 +3712,36 @@ body.hide-thinking .thinking-block { display: none !important; }
   transition: opacity var(--duration) var(--ease), background var(--duration) var(--ease);
 }
 
+.launcher-open-trigger {
+  position: absolute;
+  top: 50%;
+  right: 32px;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-solid) 70%, transparent);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  opacity: 0;
+  transition: opacity var(--duration) var(--ease), background var(--duration) var(--ease);
+}
+
 .launcher-bubble-shell:hover .launcher-menu-trigger,
-.launcher-bubble-shell:focus-within .launcher-menu-trigger {
+.launcher-bubble-shell:focus-within .launcher-menu-trigger,
+.launcher-bubble-shell:hover .launcher-open-trigger,
+.launcher-bubble-shell:focus-within .launcher-open-trigger {
   opacity: 1;
+}
+
+.launcher-open-trigger:hover {
+  background: var(--bg-glass-hover);
+  color: var(--text-primary);
 }
 
 .launcher-menu-trigger:hover {
@@ -3711,6 +3749,7 @@ body.hide-thinking .thinking-block { display: none !important; }
   color: var(--text-primary);
 }
 
+.launcher-open-menu,
 .launcher-menu {
   position: absolute;
   right: 0;
@@ -3728,6 +3767,14 @@ body.hide-thinking .thinking-block { display: none !important; }
 }
 
 .launcher-menu.open {
+  display: block;
+}
+
+.launcher-open-menu {
+  right: 24px;
+}
+
+.launcher-open-menu.open {
   display: block;
 }
 

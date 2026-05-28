@@ -23,6 +23,11 @@ identifier = "allow-cmd-stop-instance"
 description = "Allow stopping (killing) a pi instance"
 commands.allow = ["cmd_stop_instance"]
 
+[[permission]]
+identifier = "allow-cmd-get-pi-version"
+description = "Allow reading installed pi CLI version"
+commands.allow = ["cmd_get_pi_version"]
+
 # Permission set that bundles all custom command permissions.
 # Referenced from capabilities/default.json as "pi-desktop:default".
 [default]
@@ -33,4 +38,5 @@ permissions = [
   "allow-cmd-new-session",
   "allow-cmd-switch-session",
   "allow-cmd-stop-instance",
+  "allow-cmd-get-pi-version",
 ]

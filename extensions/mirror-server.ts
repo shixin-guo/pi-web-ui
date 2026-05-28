@@ -296,6 +296,57 @@ function sendAuthRequired(res: http.ServerResponse) {
   res.end(JSON.stringify({ error: "Unauthorized" }));
 }
 
+function getPiVersion(): Promise<string> {
+  const candidates = ["pi", "/opt/homebrew/bin/pi", "/usr/local/bin/pi"];
+  return new Promise((resolve, reject) => {
+    const runPiWithNode = (piPath: string, done: (ok: boolean) => void) => {
+      let resolvedPath = piPath;
+      try {
+        resolvedPath = fs.realpathSync(piPath);
+      } catch {}
+      execFile(process.execPath, [resolvedPath, "--version"], { timeout: 5000 }, (err, stdout) => {
+        if (err) {
+          done(false);
+          return;
+        }
+        const version = (stdout || "").toString().trim();
+        if (!version) {
+          done(false);
+          return;
+        }
+        resolve(version);
+        done(true);
+      });
+    };
+
+    const tryNext = (index: number) => {
+      if (index >= candidates.length) {
+        reject(new Error("Unable to resolve pi binary for version lookup"));
+        return;
+      }
+      const candidate = candidates[index];
+      const exists = candidate.includes("/") && fs.existsSync(candidate);
+      if (exists) {
+        runPiWithNode(candidate, (ok) => {
+          if (!ok) tryNext(index + 1);
+        });
+        return;
+      }
+      execFile(candidate, ["--version"], { timeout: 5000 }, (err, stdout) => {
+        if (!err) {
+          const version = (stdout || "").toString().trim();
+          if (version) {
+            resolve(version);
+            return;
+          }
+        }
+        tryNext(index + 1);
+      });
+    };
+    tryNext(0);
+  });
+}
+
 export default function (pi: ExtensionAPI) {
   let server: http.Server | null = null;
   let wss: WebSocketServer | null = null;
@@ -304,6 +355,7 @@ export default function (pi: ExtensionAPI) {
 
   // Store latest context reference for use in command handlers
   let latestCtx: ExtensionContext | null = null;
+  let piVersionCache: string | null = null;
 
   // Pending RPC-style requests from browser (id -> resolver)
   const pendingRequests = new Map<string, (response: any) => void>();
@@ -685,6 +737,17 @@ export default function (pi: ExtensionAPI) {
           break;
         }
 
+        case "get_pi_version": {
+          if (piVersionCache) {
+            sendTo(ws, success("get_pi_version", { version: piVersionCache }));
+            break;
+          }
+          const version = await getPiVersion();
+          piVersionCache = version;
+          sendTo(ws, success("get_pi_version", { version }));
+          break;
+        }
+
         // ─── Model ───
         case "get_available_models": {
           if (!ctx) {
@@ -936,7 +999,7 @@ export default function (pi: ExtensionAPI) {
   // ═══════════════════════════════════════
   // API routes (sessions list, etc.)
   // ═══════════════════════════════════════
-  function handleApiRoute(req: http.IncomingMessage, res: http.ServerResponse, urlPath: string) {
+  async function handleApiRoute(req: http.IncomingMessage, res: http.ServerResponse, urlPath: string) {
     // CORS headers
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
@@ -976,6 +1039,19 @@ img{border-radius:12px}a{color:#b87a5c;font-size:18px;margin-top:16px}p{color:rg
     if (urlPath === "/api/health") {
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ status: "ok", mode: "mirror", mirrorUrl, tailscaleUrl: tailscaleUrl || undefined }));
+      return;
+    }
+
+    if (urlPath === "/api/pi-version" && req.method === "GET") {
+      getPiVersion()
+        .then((version) => {
+          res.writeHead(200, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ success: true, version }));
+        })
+        .catch((e: any) => {
+          res.writeHead(500, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ success: false, error: e?.message || "Failed to get pi version" }));
+        });
       return;
     }
 

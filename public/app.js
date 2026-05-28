@@ -1671,6 +1671,55 @@ const themeGrid = document.getElementById('theme-grid');
 const toggleAutoCompact = document.getElementById('toggle-auto-compact');
 const btnThinkingLevel = document.getElementById('btn-thinking-level');
 const toggleShowThinking = document.getElementById('toggle-show-thinking');
+const piVersionValue = document.getElementById('setting-pi-version-value');
+let piVersionCache = null;
+let piVersionInflight = null;
+
+function formatPiVersionError(err, fallback = 'unknown error') {
+  const raw = String(err?.message || err?.error || err || fallback).trim();
+  if (!raw) return fallback;
+  return raw.length > 56 ? `${raw.slice(0, 56)}...` : raw;
+}
+
+async function loadPiVersion() {
+  if (!piVersionValue) return;
+  if (piVersionCache) {
+    piVersionValue.textContent = piVersionCache;
+    return;
+  }
+  if (piVersionInflight) {
+    return;
+  }
+  piVersionInflight = (async () => {
+    try {
+      if (window.tauriNative?.getPiVersion) {
+        const version = await window.tauriNative.getPiVersion();
+        if (version) {
+          piVersionCache = version;
+          piVersionValue.textContent = piVersionCache;
+        } else {
+          piVersionValue.textContent = 'Unavailable (empty version)';
+        }
+      } else {
+        const data = await rpcCommand({ type: 'get_pi_version' });
+        if (data?.success && data.data?.version) {
+          piVersionCache = data.data.version;
+          piVersionValue.textContent = piVersionCache;
+        } else {
+          const reason = formatPiVersionError(data?.error, 'version missing in response');
+          console.error('[settings] failed to load pi version:', data);
+          piVersionValue.textContent = `Unavailable (${reason})`;
+        }
+      }
+    } catch (err) {
+      const reason = formatPiVersionError(err);
+      console.error('[settings] failed to load pi version:', err);
+      piVersionValue.textContent = `Unavailable (${reason})`;
+    } finally {
+      piVersionInflight = null;
+    }
+  })();
+}
 
 
 function buildThemeGrid() {
@@ -1697,6 +1746,12 @@ async function openSettings() {
   buildThemeGrid();
   settingsPanel.classList.remove('hidden');
   settingsOverlay.classList.remove('hidden');
+  if (piVersionValue) {
+    piVersionValue.textContent = piVersionCache || 'Loading...';
+  }
+  setTimeout(() => {
+    if (!settingsPanel.classList.contains('hidden')) loadPiVersion();
+  }, 300);
 
   // Fetch current state for toggles
   try {
