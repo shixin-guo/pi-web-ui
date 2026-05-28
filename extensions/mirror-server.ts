@@ -887,7 +887,7 @@ export default function (pi: ExtensionAPI) {
   // ═══════════════════════════════════════
   // Static file server
   // ═══════════════════════════════════════
-  function serveStaticFile(req: http.IncomingMessage, res: http.ServerResponse) {
+  async function serveStaticFile(req: http.IncomingMessage, res: http.ServerResponse) {
     let urlPath = req.url || "/";
 
     // Auth gate — exempt /api/health for monitoring
