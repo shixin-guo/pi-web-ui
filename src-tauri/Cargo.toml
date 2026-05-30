@@ -1,6 +1,6 @@
 [package]
 name = "pi-studio"
-version = "0.1.15"
+version = "0.1.16"
 description = "Pi Agent Desktop - session manager for pi coding agent"
 authors = ["Pi Desktop"]
 edition = "2021"

@@ -2509,7 +2509,7 @@ dependencies = [
 
 [[package]]
 name = "pi-studio"
-version = "0.1.15"
+version = "0.1.16"
 dependencies = [
  "dirs 5.0.1",
  "reqwest 0.12.28",
