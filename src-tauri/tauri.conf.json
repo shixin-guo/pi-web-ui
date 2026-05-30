@@ -2,7 +2,7 @@
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Pi Studio",
   "identifier": "works.earendil.pi-studio",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "build": {
     "frontendDist": "../public",
     "beforeDevCommand": "npm run fetch:pi && npm run dev:web",
